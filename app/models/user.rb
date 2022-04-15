@@ -7,6 +7,7 @@ class User < ActiveRecord::Base
   validates :email, presence: true, length: {maximum: 255} , uniqueness: {case_sensitive: false}, format: { with: VALID_EMAIL_REGEX}
   has_secure_password
   validates :password, length: {minimum: 6}, allow_blank: true
+  has_many :microposts, dependent: :destroy
   def User.digest(string)
     cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
     BCrypt::Password.create(string, cost: cost)
@@ -37,7 +38,9 @@ class User < ActiveRecord::Base
     UserMailer.account_activation(self).deliver_now
   end
 
-
+  def feed 
+    Micropost.where("user_id = ?", id)
+  end
 
   def authenticated?(attribute, token)
     digest = send("#{attribute}_digest")
